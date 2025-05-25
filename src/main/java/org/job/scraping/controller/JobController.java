@@ -1,18 +1,15 @@
 package org.job.scraping.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.job.scraping.model.Job;
-import org.job.scraping.service.ExcelExportService;
-import org.job.scraping.service.IndeedScraperService;
-import org.job.scraping.service.JsonExportService;
-import org.job.scraping.service.LinkedInScraperService;
+import org.job.scraping.service.*;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -21,39 +18,24 @@ import java.util.List;
 @Service
 @RestController
 @RequestMapping("/api/jobs")
+@Slf4j
 public class JobController {
-    private final IndeedScraperService indeed;
-    private final LinkedInScraperService linkedin;
+
     private final ExcelExportService excel;
-    private final JsonExportService jsonExportService;
+    private final GoogleJobsRestClient googleJobsRestClient;
 
-    public JobController(IndeedScraperService indeed,
-                         LinkedInScraperService linkedin,
-                         ExcelExportService excel,
-                         JsonExportService json) {
-        this.indeed = indeed;
-        this.linkedin = linkedin;
+    public JobController(ExcelExportService excel,
+                         GoogleJobsRestClient googleJobsRestClient) {
         this.excel = excel;
-        this.jsonExportService = json;
+        this.googleJobsRestClient = googleJobsRestClient;
     }
 
-    @GetMapping
-    public ResponseEntity<?> getJobs(
-            @RequestParam(value = "experience", required = false) Integer experience,
-            @RequestParam("position") String position,
-            @RequestParam("tech") String tech,
-            @RequestParam("country") String country,
-            @RequestParam(value = "items", required = false) Integer items,
-            HttpServletResponse resp) throws IOException, InterruptedException {
-
-        List<Job> all = new ArrayList<>();
-//        all.addAll(indeed.scrape(position, experience, tech));
-        all.addAll(linkedin.scrape(position, (experience != null) ? experience : 0, tech, country, items));
-//        excel.exportJobs(all, resp);
-        jsonExportService.exportJobsToJson(all, resp);
-        return ResponseEntity.ok().body("Jobs fetched successfully");
-
+    @GetMapping("/google-jobs")
+    public List<Job> getGoogleJobs(@RequestParam("jobTitle") String jobTitle, @RequestParam("country") String country,
+                                   @RequestParam("pages") int pages) throws IOException {
+        List<Job> all = googleJobsRestClient.getGoogleJobListing(jobTitle, country, pages);
+        excel.saveJobsToFile(all);
+        return all;
     }
-
 
 }
