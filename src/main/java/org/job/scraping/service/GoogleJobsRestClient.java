@@ -4,6 +4,7 @@ package org.job.scraping.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.job.scraping.model.Job;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
@@ -15,8 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -24,6 +25,8 @@ public class GoogleJobsRestClient {
 
     private final RestTemplate restTemplate;
     private final String serpApiBaseUrl = "https://serpapi.com";
+    private static final String PAGINATION = "serpapi_pagination";
+    private static final String NEXT_PAGE_TOKEN = "next_page_token";
     String nextPageToken = null;
     @Value("${serpapi.api.key}")
     private String apiKey;
@@ -34,19 +37,19 @@ public class GoogleJobsRestClient {
         this.restTemplate = restTemplateBuilder.build();
     }
 
-    public List<Job> getGoogleJobListing(String jobTitle, String country, int pages) throws IOException {
-        List<Job> allJobs = new ArrayList<>();
+    public Set<Job> getGoogleJobListing(String jobTitle, String country, int pages, String postedAt) throws IOException {
+        Set<Job> allJobs = new HashSet<>();
         ObjectMapper mapper = new ObjectMapper();
         String nextPageToken = null;
         int currentPage = 0;
         do {
             String queryUrl = serpApiBaseUrl + searchEngine + "&q=\"" + jobTitle + "\"+\"" + country + "\"" +
-                    "&api_key=" + apiKey;
+                    "&tbs=qdr:d&api_key=" + apiKey;
 
             log.info("queryUrl: " + queryUrl);
 
             if (nextPageToken != null) {
-                queryUrl += "&next_page_token=" + nextPageToken;
+                queryUrl += "&"+NEXT_PAGE_TOKEN+"=" + nextPageToken;
             }
 
             HttpHeaders headers = new HttpHeaders();
@@ -68,9 +71,9 @@ public class GoogleJobsRestClient {
                     }
                 }
 
-                JsonNode paginationNode = root.path("serpapi_pagination");
-                if (paginationNode.has("next_page_token")) {
-                    nextPageToken = paginationNode.path("next_page_token").asText(null);
+                JsonNode paginationNode = root.path(PAGINATION);
+                if (paginationNode.has(NEXT_PAGE_TOKEN)) {
+                    nextPageToken = paginationNode.path(NEXT_PAGE_TOKEN).asText(null);
                 } else {
                     nextPageToken = null;
                 }
@@ -81,7 +84,7 @@ public class GoogleJobsRestClient {
             currentPage++;
         } while (currentPage < pages);
 
-        return allJobs;
+        return allJobs.stream().filter(job -> Optional.ofNullable(job.getDetectedExtensions().getPostedAt()).orElse(Strings.EMPTY).contains(postedAt)).collect(Collectors.toSet());
     }
 
 }

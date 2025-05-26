@@ -1,19 +1,17 @@
 package org.job.scraping.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.job.scraping.model.Job;
-import org.job.scraping.service.*;
-import org.springframework.context.annotation.Primary;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.job.scraping.service.ExcelExportService;
+import org.job.scraping.service.GoogleJobsRestClient;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Set;
 
 @Service
 @RestController
@@ -31,9 +29,10 @@ public class JobController {
     }
 
     @GetMapping("/google-jobs")
-    public List<Job> getGoogleJobs(@RequestParam("jobTitle") String jobTitle, @RequestParam("country") String country,
-                                   @RequestParam("pages") int pages) throws IOException {
-        List<Job> all = googleJobsRestClient.getGoogleJobListing(jobTitle, country, pages);
+    public Set<Job> getGoogleJobs(@RequestParam("jobTitle") String jobTitle, @RequestParam("country") String country,
+                                   @RequestParam("pages") int pages,
+                                   @RequestParam("posted_at") String postedAt) throws IOException {
+        Set<Job> all = googleJobsRestClient.getGoogleJobListing(jobTitle, country, pages, postedAt); // postedAt : write(hours/days/minutes) to get jobs posted hours/days/minutes ago
         excel.saveJobsToFile(all);
         return all;
     }

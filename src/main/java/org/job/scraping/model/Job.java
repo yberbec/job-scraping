@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 @Setter
@@ -24,8 +25,21 @@ public class Job {
     private DetectedExtensions detectedExtensions;
     @JsonProperty("apply_options")
     private List<ApplyOptions> applyOptions;
+    @JsonProperty("job_id")
+    private String jobId;
 
-//    private String url;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Job)) return false;
+        Job job = (Job) o;
+        return Objects.equals(jobId, job.jobId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(jobId);
+    }
 
     @Setter
     @Getter

@@ -12,11 +12,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class ExcelExportService {
 
-    public void saveJobsToFile(List<Job> jobs) throws IOException {
+    public void saveJobsToFile(Set<Job> jobs) throws IOException {
         Workbook wb = new XSSFWorkbook();
         Sheet sheet = wb.createSheet("Jobs");
         int rowIdx = 0;
