@@ -1,6 +1,7 @@
 package org.job.scraping.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.job.scraping.exception.InvalidJobRequestException;
 import org.job.scraping.model.Job;
 import org.job.scraping.service.ExcelExportService;
 import org.job.scraping.service.GoogleJobsRestClient;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Set;
 
 @Service
@@ -31,7 +33,10 @@ public class JobController {
     @GetMapping("/google-jobs")
     public Set<Job> getGoogleJobs(@RequestParam("jobTitle") String jobTitle, @RequestParam("country") String country,
                                    @RequestParam("pages") int pages,
-                                   @RequestParam("posted_at") String postedAt) throws IOException {
+                                   @RequestParam("posted_at") String postedAt) throws IOException, URISyntaxException {
+        if (pages <= 0) {
+            throw new InvalidJobRequestException("Pages must be greater than 0.");
+        }
         Set<Job> all = googleJobsRestClient.getGoogleJobListing(jobTitle, country, pages, postedAt); // postedAt : write(hours/days/minutes) to get jobs posted hours/days/minutes ago
         excel.saveJobsToFile(all);
         return all;

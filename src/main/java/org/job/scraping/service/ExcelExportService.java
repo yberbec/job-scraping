@@ -5,6 +5,7 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.job.scraping.exception.ExportException;
 import org.job.scraping.model.Job;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +38,11 @@ public class ExcelExportService {
 
         try (FileOutputStream fileOut = new FileOutputStream("output/jobs.xlsx")) {
             wb.write(fileOut);
-        } finally {
+        }
+        catch (IOException ex){
+            throw new ExportException(ex.getMessage());
+        }
+        finally {
             wb.close();
         }
     }
