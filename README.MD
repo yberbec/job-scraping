@@ -96,7 +96,9 @@ mvn spring-boot:run
 │   └── JobParsingException.java    # Custom error types
 ├── model/
 │   └── Job.java                    # POJO model for job listings
-└── service/
+├── service/
+├── util/
+│   └── ExportConstants.java
 ├── ExcelExportService.java     # Exports jobs to Excel
 └── GoogleJobsRestClient.java   # Core logic: fetch + parse jobs
 ```

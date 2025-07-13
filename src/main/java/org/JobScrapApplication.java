@@ -1,4 +1,4 @@
-package org.example;
+package org;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,8 +10,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ComponentScan(basePackages = {"org.job"})
 @EnableScheduling
 @EnableFeignClients(basePackages = "org.job.scraping")
-public class ScraperApplication {
+public class JobScrapApplication {
     public static void main(String[] args) {
-        SpringApplication.run(ScraperApplication.class, args);
+        SpringApplication.run(JobScrapApplication.class, args);
     }
 }

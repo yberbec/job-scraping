@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -57,7 +56,12 @@ public class GoogleJobsRestClient {
             }
         } while (currentPage < pages && nextPageToken != null);
 
-        return allJobs.stream().filter(job -> Optional.ofNullable(job.getDetectedExtensions().getPostedAt()).orElse(Strings.EMPTY).contains(postedAt)).collect(Collectors.toSet());
+        return allJobs.stream()
+                .filter(job -> {
+                    Job.DetectedExtensions ext = job.getDetectedExtensions();
+                    return ext != null && ext.getPostedAt() != null && ext.getPostedAt().contains(postedAt);
+                })
+                .collect(Collectors.toSet());
     }
 
     public String processJobResponse(ResponseEntity<String> response, ObjectMapper mapper, Set<Job> allJobs) throws IOException {

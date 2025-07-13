@@ -7,16 +7,21 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.job.scraping.exception.ExportException;
 import org.job.scraping.model.Job;
+import org.job.scraping.util.ExportConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.Set;
 
 @Service
 public class ExcelExportService {
+
+    private static final Logger log = LoggerFactory.getLogger(ExcelExportService.class);
 
     public void saveJobsToFile(Set<Job> jobs) throws IOException {
         Workbook wb = new XSSFWorkbook();
@@ -36,7 +41,18 @@ public class ExcelExportService {
 
         }
 
-        try (FileOutputStream fileOut = new FileOutputStream("output/jobs.xlsx")) {
+        String userDirectory = ExportConstants.USER_DIR.get();
+
+        String outputPath = Paths.get(
+                userDirectory.contains(ExportConstants.APP_NAME.get())
+                        ? userDirectory
+                        : ExportConstants.APP_NAME.get(),
+                ExportConstants.OUTPUT_DIR.get(),
+                ExportConstants.FILE_NAME.get()
+        ).toString();
+
+        log.info("this is the output path : " + outputPath);
+        try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
             wb.write(fileOut);
         }
         catch (IOException ex){
