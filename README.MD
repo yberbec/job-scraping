@@ -14,6 +14,57 @@ A Spring Boot application that scrapes job listings from Google Jobs using the S
 
 ---
 
+## 🔍 Metrics with Prometheus & Grafana
+
+This application exposes runtime and custom metrics (like error counts) via the Spring Boot `/actuator/prometheus` endpoint.
+
+### ✅ Prometheus Endpoint
+http://localhost:8080/actuator/prometheus
+
+
+---
+
+### 📄 Sample `prometheus.yml` Configuration
+
+Create a `prometheus.yml` file in prometheus server config file:
+
+```yaml
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'spring-boot-job-scraper'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['localhost:8080']
+```
+
+### Running Prometheus and Grafana Locally
+  1. Prometheus : 
+     - Download Prometheus from https://prometheus.io/download/
+     - Place the prometheus.yml file in the Prometheus root directory
+     - Run: ./prometheus --config.file=prometheus.yml
+     - Access Prometheus UI: http://localhost:9090
+  2. Grafana : 
+     - Download Grafana from https://grafana.com/grafana/download
+     - Start Grafana server: ``` ./bin/grafana-server ```
+       - Access Grafana: http://localhost:3000
+         - Login: admin / admin
+
+### ➕ Add Prometheus as a data source:
+  - Navigate to Settings → Data Sources → Add data source 
+  - Choose Prometheus
+  - URL: http://localhost:9090
+  - Click Save & Test
+
+### 📊 Create Dashboards
+  - Go to + → Dashboard → Add new panel
+  - In the query field, use: ```app_errors_total```
+  - Visualize your custom metrics like total application errors
+
+- Result : ![img.png](img.png)
+---
+
 ## 🧪 API Usage
 
 ### Endpoint
@@ -52,6 +103,8 @@ http://localhost:8080/api/jobs/google-jobs?jobTitle=java+backend+developer+jobs&
 - **SerpApi**
 - **Jackson for JSON**
 - **Apache POI for Excel Export**
+- **Micrometer + Spring Actuator (Prometheus metrics)**
+- **Grafana (visual dashboards)**
 
 ---
 
