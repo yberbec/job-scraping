@@ -39,11 +39,12 @@ public class GoogleJobsRestClient {
     private GoogleJobsApi googleJobsApi;
 
     public Set<Job> getGoogleJobListing(String jobTitle, String country, int pages, String postedAt) throws IOException, URISyntaxException {
+        log.info("Starting Google Jobs scraping...");
         Set<Job> allJobs = new HashSet<>();
         ObjectMapper mapper = new ObjectMapper();
         String nextPageToken = null;
         int currentPage = 0;
-        String queryUrl = jobTitle + country;
+        String queryUrl = jobTitle +" "+ country;
         do {
             try {
                 ResponseEntity<String> response = googleJobsApi.getJobs(queryUrl, FILTER_TIME, apiKey, nextPageToken);
@@ -59,7 +60,10 @@ public class GoogleJobsRestClient {
         return allJobs.stream()
                 .filter(job -> {
                     Job.DetectedExtensions ext = job.getDetectedExtensions();
-                    return ext != null && ext.getPostedAt() != null && ext.getPostedAt().contains(postedAt);
+
+                    return ext == null
+                            || ext.getPostedAt() == null
+                            || ext.getPostedAt().contains(postedAt);
                 })
                 .collect(Collectors.toSet());
     }
@@ -72,6 +76,7 @@ public class GoogleJobsRestClient {
             JsonNode jobsResults = root.path(JOBS_RESULTS);
             if (jobsResults.isArray()) {
                 for (JsonNode job : jobsResults) {
+                    log.info("RAW JOB JSON: {}", job.toPrettyString());
                     Job jobObj = mapper.treeToValue(job, Job.class);
                     allJobs.add(jobObj);
                 }

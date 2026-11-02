@@ -11,7 +11,8 @@ import org.job.scraping.util.ExportConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
@@ -41,26 +42,29 @@ public class ExcelExportService {
 
         }
 
+
         String userDirectory = ExportConstants.USER_DIR.get();
 
-        String outputPath = Paths.get(
+        Path outputPath = Paths.get(
                 userDirectory.contains(ExportConstants.APP_NAME.get())
                         ? userDirectory
                         : ExportConstants.APP_NAME.get(),
                 ExportConstants.OUTPUT_DIR.get(),
                 ExportConstants.FILE_NAME.get()
-        ).toString();
+        ).toAbsolutePath().normalize();
 
-        log.info("this is the output path : " + outputPath);
-        try (FileOutputStream fileOut = new FileOutputStream(outputPath)) {
+        Files.createDirectories(outputPath.getParent());
+
+        log.info("Exporting jobs to: {}", outputPath);
+
+        try (FileOutputStream fileOut = new FileOutputStream(outputPath.toFile())) {
             wb.write(fileOut);
-        }
-        catch (IOException ex){
+        } catch (IOException ex) {
             throw new ExportException(ex.getMessage());
-        }
-        finally {
+        } finally {
             wb.close();
         }
+
     }
 
 }
